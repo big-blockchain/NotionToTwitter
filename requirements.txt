@@ -7,3 +7,4 @@ pandas
 pillow
 TwitterAPI
 tqdm
+tweepy

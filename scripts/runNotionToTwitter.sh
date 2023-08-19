@@ -2,5 +2,5 @@
 
 # write your scripts here
 
-cd ../src
-python notionToTwitter.py >> ../STDOUTlog.txt
+# cd ./src
+python ./src/notionToTwitter.py >> ../STDOUTlog.txt
