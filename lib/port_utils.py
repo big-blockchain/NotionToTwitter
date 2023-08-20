@@ -17,8 +17,7 @@ from tweepy.errors import (
 
 sys.path.append('../')
 
-
-class NotionTweetRow():
+class NotionRow():
     ''' A class denoting a row in the Notion twitter database '''
 
     def __init__(self, row, notion):
@@ -32,6 +31,8 @@ class NotionTweetRow():
         self.created = arrow.get(row['created_time']).to('UTC')
         self.lastEdited = arrow.get(row['last_edited_time']).to('UTC')
         self.pageURL = row['url']
+        self.platform = [obj["name"] for obj in row['properties']['Platform']['multi_select']]
+        self.postedplatform = [obj["name"] for obj in row['properties']['Posted Platform']['multi_select']]
 
         self.title = row['properties']['Name']['title'][0]['text']['content'] if row['properties']['Name'][
             'title'] else None
@@ -268,5 +269,48 @@ def postRowToTwitter(row, api_v1, api_v2, notion):
         notion.pages.update(row.pageID, properties=updates)
         print('Updated Notion')
 
+    else:
+        print('Already tweeted')
+
+def postRowToInstagram(row, webhook_url, notion):
+    '''
+    Post notion row to twitter + prints staus
+    Args:
+        row: (NotionTweetRow)
+        api: (tweepy) instance of twitter api
+        notion: (notion Client) Notion client object
+    '''
+    # verify if the row is not already tweeted
+    if ~row.tweeted:
+        # get thread from notion and the retweet URL if retweet
+        thread, retweetURL = row.getTweetThread()
+
+        for tweet in thread:
+            # 定义要发送的数据
+            data = {
+                "text": tweet['text'],
+                "images": tweet['images']
+            }
+
+            # 发送 POST 请求到 Zapier Webhook
+            response = requests.post(webhook_url, json=data)
+
+            # 检查响应状态码
+            if response.status_code == 200:
+                print("请求已成功发送到 Zapier Webhook！")
+                errorText = '\n' + 'UPDATE STATUS SUCCESS'
+                tweeted = True
+            else:
+                print("请求发送失败。响应状态码：", response.status_code)
+                errorText = '\n' + 'UPDATE STATUS FAILURE: ' + \
+                            str(response.status_code)
+
+        # update Notion
+        updates = {}
+        updates['Posted?'] = {"checkbox": tweeted}
+        updates['Error Message'] = {
+            "rich_text": [{"text": {"content": "twitter error:{}".format(errorText)}}]}
+        notion.pages.update(row.pageID, properties=updates)
+        print('Updated Notion')
     else:
         print('Already tweeted')

@@ -41,7 +41,7 @@ from globalStore import constants
 
 # %%
 from lib.port_utils import getAllUntweetedRowsFromNotionDatabase, filterRowsToBePostedBasedOnDate, postRowToTwitter
-from lib.port_utils import NotionTweetRow
+from lib.port_utils import NotionRow
 
 # %% [markdown]
 # ## Configs
@@ -90,7 +90,7 @@ len(todayNotionRows)
 # %%
 # loop over row in filtered rows collection
 for row in todayNotionRows: 
-    row = NotionTweetRow(row, notion)
+    row = NotionRow(row, notion)
     # post the row to twitter
     postRowToTwitter(row, api, notion)
 

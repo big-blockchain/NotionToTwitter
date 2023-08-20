@@ -16,7 +16,7 @@ from TwitterAPI import TwitterAPI
 from notion_client import Client
 
 from lib.port_utils import getAllUntweetedRowsFromNotionDatabase, filterRowsToBePostedBasedOnDate, postRowToTwitter
-from lib.port_utils import NotionTweetRow
+from lib.port_utils import NotionRow
 
 from globalStore import constants
 
@@ -51,6 +51,6 @@ if __name__ == "__main__":
 
         # loop over row in filtered rows collection
         for row in todayNotionRows:
-            row = NotionTweetRow(row, notion)
+            row = NotionRow(row, notion)
             # post the row to zapier
 

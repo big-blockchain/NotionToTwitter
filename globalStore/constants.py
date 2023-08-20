@@ -22,3 +22,14 @@ NOTION_SECRETS = {
     'medai': privateConstants.NOTION_SECRET_FILE_MEDAI,
     'test': privateConstants.NOTION_SECRET_FILE_TEST,
 }
+
+SUPPORT_PLATFORM = {
+    reddit: 'Reddit 👽',
+    facebook: 'Facebook 📓',
+    youtube: 'YouTube 🎥',
+    tiktok: 'TikTok 🎵',
+    igstory: 'IG Story 🎞️',
+    instagram: 'Instagram 📸',
+    linkin: 'LinkedIn 💼',
+    twitter: 'Twitter 🐦',
+}
