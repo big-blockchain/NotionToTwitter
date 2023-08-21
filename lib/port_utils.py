@@ -34,10 +34,13 @@ class NotionRow():
         self.created = arrow.get(row['created_time']).to('UTC')
         self.lastEdited = arrow.get(row['last_edited_time']).to('UTC')
         self.pageURL = row['url']
-        self.platform = [obj["name"] for obj in row['properties']['Platform']['multi_select']]
-        self.posted_platform = [obj["name"] for obj in row['properties']['Posted Platform']['multi_select']]
+        self.platform = [obj["name"] for obj in row['properties']['Social Media Platform']['multi_select']]
+        if 'Posted Platform' in row['properties'] and row['properties']['Posted Platform'] is not None:
+            self.posted_platform = [obj["name"] for obj in row['properties']['Posted Platform']['multi_select']]
+        else:
+            self.posted_platform = []
 
-        self.title = row['properties']['Name']['title'][0]['text']['content'] if row['properties']['Name'][
+        self.title = row['properties']['Title']['title'][0]['text']['content'] if row['properties']['Title'][
             'title'] else None
 
         try:
@@ -53,7 +56,7 @@ class NotionRow():
 
         self.tweeted = row['properties']['Posted?']['checkbox']
 
-        self.medias = row['properties']['medias']['files']
+        self.medias = [item for item in row['properties']['Medias Link']['rich_text'][0]['plain_text'].split(';') if item != '']
 
         self.rawContent = notion.blocks.children.list(self.pageID)
         self.threadCount = len(self.rawContent['results'])
@@ -205,13 +208,13 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
                 media_ids = []
                 for img in tweet['images']:
                     # check if img is a local file or a URL
-                    if os.path.isfile(img[img['type']]['url']):
+                    if os.path.isfile(img):
                         # read data from local file
                         file = open(img[img['type']]['url'], 'rb')
                         data = file.read()
                     else:
                         # read data from URL
-                        response = requests.get(img[img['type']]['url'])
+                        response = requests.get(img)
                         data = response.content
                     w = api_v1.request('media/upload', None, {'media': data})
                     print('UPLOAD MEDIA SUCCESS' if w.status_code ==
@@ -281,13 +284,13 @@ def post_row_to_instagram(row, webhook_url, notion):
     # verify if the row is not already tweeted
     if ~row.tweeted:
         # get thread from notion and the retweet URL if retweet
-        thread, retweetURL = row.get_tweet_thread()
+        thread, retweet_url = row.get_tweet_thread()
 
         for tweet in thread:
             # 定义要发送的数据
             data = {
                 "text": tweet['text'],
-                "images": tweet['images']
+                "image": tweet['images'][0]
             }
 
             # 发送 POST 请求到 Zapier Webhook
