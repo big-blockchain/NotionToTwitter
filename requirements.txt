@@ -1,18 +1,16 @@
 arrow~=1.2.3
 jupyterlab
 jupytext
-notion-client
+notion-client==2.0.0
 numpy
 pandas
-pillow
+pillow==10.0.0
 TwitterAPI~=2.8.2
 tqdm
 tweepy~=4.14.0
 
 requests~=2.31.0
-pip~=23.0.1
-zlib~=1.2.13
-wheel~=0.38.4
-openssl~=1.1.1v
-tornado~=6.3.2
-setuptools~=66.0.0
+pip==23.2.1
+wheel==0.41.1
+tornado==6.3.3
+setuptools==68.1.2
