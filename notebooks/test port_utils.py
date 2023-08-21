@@ -40,7 +40,7 @@ from notion_client import Client
 from globalStore import constants
 
 # %%
-from lib.port_utils import getAllUntweetedRowsFromNotionDatabase, filterRowsToBePostedBasedOnDate, post_row_to_twitter
+from lib.port_utils import get_all_unpost_rows_from_notion_database, filter_rows_to_be_posted_based_on_date, post_row_to_twitter
 from lib.port_utils import NotionRow
 
 # %% [markdown]
@@ -75,7 +75,7 @@ api = TwitterAPI(consumer_key = secrets['APIConsumerKey'],
 
 # %%
 # get all untweeted notion rows
-allNotionRows = getAllUntweetedRowsFromNotionDatabase(notion, notionDB_id)
+allNotionRows = get_all_unpost_rows_from_notion_database(notion, notionDB_id)
 
 # %%
 # fix datetime
@@ -84,7 +84,7 @@ datetime
 
 # %%
 # filter based on datetime
-todayNotionRows = filterRowsToBePostedBasedOnDate(allNotionRows, datetime)
+todayNotionRows = filter_rows_to_be_posted_based_on_date(allNotionRows, datetime)
 len(todayNotionRows)
 
 # %%
