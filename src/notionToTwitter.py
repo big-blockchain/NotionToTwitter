@@ -23,7 +23,6 @@ import tweepy
 
 sys.path.append('../')
 
-
 # arguments
 PYTHON = sys.executable
 parser = argparse.ArgumentParser()
@@ -109,7 +108,8 @@ if __name__ == "__main__":
             else:
                 print('no instagram platform', can_tweet)
 
-            if sorted(row.posted_platform) == sorted(row.platform):
+            if len(row.posted_platform) != 0 and len(row.platform) != 0 \
+                    and sorted(row.posted_platform) == sorted(row.platform):
                 print('All platform posted')
 
                 updates = {'Posted?': {"checkbox": True}}
