@@ -18,8 +18,8 @@ import requests
 from TwitterAPI import TwitterAPI
 from notion_client import Client
 
-from lib.port_utils import getAllUntweetedRowsFromNotionDatabase, filterRowsToBePostedBasedOnDate, postRowToTwitter, \
-    postRowToInstagram
+from lib.port_utils import getAllUntweetedRowsFromNotionDatabase, filterRowsToBePostedBasedOnDate, post_row_to_twitter, \
+    post_row_to_instagram
 from lib.port_utils import NotionRow
 
 from globalStore import constants
@@ -84,7 +84,6 @@ if __name__ == "__main__":
             row = NotionRow(row, notion)
             if cantweet and constants.SUPPORT_PLATFORM.get('twitter') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('twitter') not in row.postedplatform:
-                # post the row to twitter
                 # start a twitter api session
                 api_v1 = TwitterAPI(consumer_key=secrets_twitter['APIConsumerKey'],
                                     consumer_secret=secrets_twitter['APIConsumerSecret'],
@@ -92,27 +91,26 @@ if __name__ == "__main__":
                                     access_token_secret=secrets_twitter['AccessTokenSecret']
                                     )
 
-                # You can provide the consumer key and secret with the access token and access
-                # token secret to authenticate as a user
-                # auth = tweepy.OAuth1UserHandler(
-                #     secrets['APIConsumerKey'], secrets['APIConsumerSecret'], secrets['AccessToken'], secrets['AccessTokenSecret']
-                # )
-                # api_v1 = tweepy.API(auth)
-
                 api_v2 = tweepy.Client(
                     bearer_token=secrets_twitter['BearerToken'],
                     consumer_key=secrets_twitter['APIConsumerKey'], consumer_secret=secrets_twitter['APIConsumerSecret'],
                     access_token=secrets_twitter['AccessToken'], access_token_secret=secrets_twitter['AccessTokenSecret']
                 )
-                postRowToTwitter(row, api_v1, api_v2, notion)
+                post_row_to_twitter(row, api_v1, api_v2, notion)
             else:
                 print('no tweet platform', cantweet)
 
             if caninstagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.postedplatform:
                 webhook_url = secrets_instagram['zapierWebhook']
-                postRowToInstagram(row, webhook_url, notion)
+                post_row_to_instagram(row, webhook_url, notion)
             else:
                 print('no instagram platform', cantweet)
+
+            if sorted(row.postedplatform) == sorted(row.platform):
+                print('All platform posted')
+
+                updates = {'Posted?': {"checkbox": True}}
+                notion.pages.update(row.pageID, properties=updates)
 
         time.sleep(int(args.sleep))

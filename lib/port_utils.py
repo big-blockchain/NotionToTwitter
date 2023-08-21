@@ -9,6 +9,8 @@ import sys
 import time
 import traceback
 
+from globalStore import constants
+
 import arrow
 import requests
 from tweepy.errors import (
@@ -17,15 +19,16 @@ from tweepy.errors import (
 
 sys.path.append('../')
 
+
 class NotionRow():
-    ''' A class denoting a row in the Notion twitter database '''
+    """ A class denoting a row in the Notion twitter database """
 
     def __init__(self, row, notion):
-        '''
+        """
         Args:
             row: (notion row)
             notion: (notion Client) Notion client object
-        '''
+        """
 
         self.pageID = row['id']
         self.created = arrow.get(row['created_time']).to('UTC')
@@ -56,13 +59,13 @@ class NotionRow():
         self.threadCount = len(self.rawContent['results'])
 
     def getTweetThread(self):
-        '''
+        """
         Returns:
             tweetThread: (list of dict)
                                 each dict has keys: 'text', 'images'
                                 'text': (str)
                                 'images': (list of str) list of image names
-        '''
+        """
         tweetThread = []
 
         for item in self.rawContent['results']:
@@ -93,14 +96,14 @@ def extract_twitter_info(retweetURL):
 
 
 def getAllUntweetedRowsFromNotionDatabase(notion, notionDB_id):
-    '''
+    """
     Gets all rows (pages) that are untweeted from a notion database using a notion client
     Args:
         notion: (notion Client) Notion client object
         notionDB_id: (str) string code id for the relevant database
     Returns:
         allNotionRows: (list of notion rows)
-    '''
+    """
     start = time.time()
     hasMore = True
     allNotionRows = []
@@ -158,14 +161,14 @@ def getAllUntweetedRowsFromNotionDatabase(notion, notionDB_id):
 
 
 def filterRowsToBePostedBasedOnDate(allRows, datetime):
-    '''
+    """
     Filters rows (notion pages) from a list of rows whose 'Post Date' matches the given datetime
     Args:
         allRows: (list of notion rows)  each row should contain a date property named Post Date
         datetime: (arrow/str/datetime) representation of datetime
     Returns:
         filteredRows: (list of notion rows)
-    '''
+    """
     arrowTime = arrow.get(datetime)
 
     filteredRows = [item for item in allRows if 'Post Date' in item['properties'] and item['properties']['Post Date']
@@ -174,27 +177,25 @@ def filterRowsToBePostedBasedOnDate(allRows, datetime):
     return filteredRows
 
 
-def postRowToTwitter(row, api_v1, api_v2, notion):
-    '''
+def post_row_to_twitter(row, api_v1, api_v2, notion):
+    """
     Post notion row to twitter + prints staus
     Args:
         row: (NotionTweetRow)
-        api: (tweepy) instance of twitter api
+        api_v1: (tweepy) instance of twitter v1 api
+        api_v2: (tweepy) instance of twitter v2 api
         notion: (notion Client) Notion client object
-    '''
+    """
     # verify if the row is not already tweeted
     if ~row.tweeted:
-
         # defaults
         replyToID, mediaID, tweetText = None, None, None
-        errorText, tweetID = '', ''
         tweeted, firstTweet = True, True
 
         # get thread from notion and the retweet URL if retweet
         thread, retweetURL = row.getTweetThread()
 
         for tweet in thread:
-
             # tweet text
             tweetText = tweet['text']
 
@@ -223,13 +224,9 @@ def postRowToTwitter(row, api_v1, api_v2, notion):
             # post tweet with a reference to uploaded image as a reply to the replyToID
             try:
                 if replyToID:
-                    # r = api.request(
-                    #     'statuses/update', {'status': tweetText, 'in_reply_to_status_id': replyToID, 'media_ids': mediaID})
                     r = api_v2.create_tweet(
                         text=tweetText, in_reply_to_tweet_id=replyToID, media_ids=media_ids)
                 else:
-                    # r = api.request(
-                    #     'statuses/update', {'status': tweetText, 'attachment_url': retweetURL})
                     print("retweetURLretweetURLretweetURL", retweetURL)
                     username, tweet_id = extract_twitter_info(retweetURL)
 
@@ -239,10 +236,12 @@ def postRowToTwitter(row, api_v1, api_v2, notion):
                 if r.errors:
                     # 将错误信息记录到 Notion 页面的 "Error Message" 属性中
                     error_messages = [error['message'] for error in r.errors]
-                    errorText = '\n'.join(error_messages)
-                    errorText = 'UPDATE STATUS FAILURE: ' + errorText
+                    print('UPDATE STATUS FAILURE: '.join(error_messages))
+                    tweeted = False
+                    break
                 else:
-                    errorText = '\n' + 'UPDATE STATUS SUCCESS'
+                    print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
+
                 # update reply to ID
                 replyToID = r.data["id"]  # 不存在的话抛出错误 Keyerror
                 # replyToID = data.get("id")
@@ -256,30 +255,30 @@ def postRowToTwitter(row, api_v1, api_v2, notion):
                 traceback.print_exc()
                 # 获取错误的类型和值
                 err_type, err_value = sys.exc_info()[:2]
-                print(err_type, err_value)
-                errorText = '\n' + 'UPDATE STATUS FAILURE: ' + \
-                            str(e.response.json())
+                print('UPDATE STATUS FAILURE:', str(e.response.json()), err_type, err_value)
                 pass
 
         # update Notion
-        updates = {}
-        updates['Posted?'] = {"checkbox": tweeted}
-        updates['Error Message'] = {
-            "rich_text": [{"text": {"content": "twitter error:{}".format(errorText)}}]}
-        notion.pages.update(row.pageID, properties=updates)
-        print('Updated Notion')
+        if tweeted:
+            row.postedplatform.append(constants.SUPPORT_PLATFORM.get('twitter'))
+            posted_platform = [{'name': obj} for obj in row.postedplatform]
+            updates = {'Posted Platform': {
+                "multi_select": posted_platform}}
+            notion.pages.update(row.pageID, properties=updates)
+            print('Updated Notion')
 
     else:
         print('Already tweeted')
 
-def postRowToInstagram(row, webhook_url, notion):
-    '''
+
+def post_row_to_instagram(row, webhook_url, notion):
+    """
     Post notion row to twitter + prints staus
     Args:
         row: (NotionTweetRow)
-        api: (tweepy) instance of twitter api
+        webhook_url: instance of zapier url
         notion: (notion Client) Notion client object
-    '''
+    """
     # verify if the row is not already tweeted
     if ~row.tweeted:
         # get thread from notion and the retweet URL if retweet
@@ -298,19 +297,15 @@ def postRowToInstagram(row, webhook_url, notion):
             # 检查响应状态码
             if response.status_code == 200:
                 print("请求已成功发送到 Zapier Webhook！")
-                errorText = '\n' + 'UPDATE STATUS SUCCESS'
-                tweeted = True
+                # update Notion
+                row.postedplatform.append(constants.SUPPORT_PLATFORM.get('instagram'))
+                posted_platform = [{'name': obj} for obj in row.postedplatform]
+                updates = {'Posted Platform': {
+                    "multi_select": posted_platform}}
+                notion.pages.update(row.pageID, properties=updates)
+                print('Updated Notion')
             else:
                 print("请求发送失败。响应状态码：", response.status_code)
-                errorText = '\n' + 'UPDATE STATUS FAILURE: ' + \
-                            str(response.status_code)
 
-        # update Notion
-        updates = {}
-        updates['Posted?'] = {"checkbox": tweeted}
-        updates['Error Message'] = {
-            "rich_text": [{"text": {"content": "twitter error:{}".format(errorText)}}]}
-        notion.pages.update(row.pageID, properties=updates)
-        print('Updated Notion')
     else:
         print('Already tweeted')

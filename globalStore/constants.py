@@ -24,12 +24,12 @@ NOTION_SECRETS = {
 }
 
 SUPPORT_PLATFORM = {
-    reddit: 'Reddit 👽',
-    facebook: 'Facebook 📓',
-    youtube: 'YouTube 🎥',
-    tiktok: 'TikTok 🎵',
-    igstory: 'IG Story 🎞️',
-    instagram: 'Instagram 📸',
-    linkin: 'LinkedIn 💼',
-    twitter: 'Twitter 🐦',
+    'reddit': 'Reddit 👽',
+    'facebook': 'Facebook 📓',
+    'youtube': 'YouTube 🎥',
+    'tiktok': 'TikTok 🎵',
+    'igstory': 'IG Story 🎞️',
+    'instagram': 'Instagram 📸',
+    'linkin': 'LinkedIn 💼',
+    'twitter': 'Twitter 🐦',
 }
