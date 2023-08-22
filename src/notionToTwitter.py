@@ -29,8 +29,8 @@ sys.path.append('../')
 # arguments
 PYTHON = sys.executable
 parser = argparse.ArgumentParser()
-parser.add_argument('--project', default='test', type=str,
-                    help='Twitter username key in dict. Options are: test')
+parser.add_argument('--project', default='promptgogo', type=str,
+                    help='Project name with secrets. Options are: promptgogo')
 parser.add_argument('--sleep', default='300', type=str,
                     help='Sleep time between posting')
 
