@@ -59,7 +59,8 @@ class NotionRow():
 
         self.tweeted = row['properties']['Posted?']['checkbox']
 
-        self.medias = [item for item in row['properties']['Medias Link']['rich_text'][0]['plain_text'].split(';') if item != '']
+        self.medias = [item for item in row['properties']['Medias Link']['rich_text'][0]['plain_text'].split(';') if
+                       item != '']
 
         self.rawContent = notion.blocks.children.list(self.pageID)
         self.threadCount = len(self.rawContent['results'])
@@ -183,6 +184,15 @@ def filter_rows_to_be_posted_based_on_date(all_rows, datetime):
     return filtered_rows
 
 
+def update_notion_posted_platform(notion, row, platform):
+    row.posted_platform.append(constants.SUPPORT_PLATFORM.get(platform))
+    posted_platform = [{'name': obj} for obj in row.posted_platform]
+    updates = {'Posted Platform': {
+        "multi_select": posted_platform}}
+    notion.pages.update(row.pageID, properties=updates)
+    print('Updated Notion')
+
+
 def post_row_to_twitter(row, api_v1, api_v2, notion):
     """
     Post notion row to twitter + prints staus
@@ -250,8 +260,6 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
 
                 # update reply to ID
                 reply_to_id = r.data["id"]  # 不存在的话抛出错误 Keyerror
-                # replyToID = data.get("id")
-                # thread tweet ID
                 if first_tweet:
                     first_tweet = False
             except HTTPException as e:
@@ -265,13 +273,7 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
 
         # update Notion
         if tweeted:
-            row.posted_platform.append(constants.SUPPORT_PLATFORM.get('twitter'))
-            posted_platform = [{'name': obj} for obj in row.posted_platform]
-            updates = {'Posted Platform': {
-                "multi_select": posted_platform}}
-            notion.pages.update(row.pageID, properties=updates)
-            print('Updated Notion')
-
+            update_notion_posted_platform(notion, row, 'twitter')
     else:
         print('Already tweeted')
 
@@ -302,12 +304,7 @@ def post_row_to_instagram(row, webhook_url, notion):
         if response.status_code == 200:
             print("请求已成功发送到 Zapier Webhook！")
             # update Notion
-            row.posted_platform.append(constants.SUPPORT_PLATFORM.get('instagram'))
-            posted_platform = [{'name': obj} for obj in row.posted_platform]
-            updates = {'Posted Platform': {
-                "multi_select": posted_platform}}
-            notion.pages.update(row.pageID, properties=updates)
-            print('Updated Notion')
+            update_notion_posted_platform(notion, row, 'instagram')
         else:
             print("请求发送失败。响应状态码：", response.status_code)
 
@@ -347,5 +344,4 @@ def post_row_to_instagram_by_api(row, ins_client, notion):
             ins_client.photo_upload(paths[0], tweet['text'])
             print("upload photo success")
 
-
-
+        update_notion_posted_platform(notion, row, 'instagram')
