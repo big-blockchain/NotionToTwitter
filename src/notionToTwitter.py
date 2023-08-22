@@ -66,11 +66,15 @@ if __name__ == "__main__":
         can_instagram = False
 
     # initialize notion client and determine notion DB
+    print('start init notion')
     notion = Client(auth=secrets_notion['notionToken'])
     notionDB_id = secrets_notion['databaseID']
+    print('end init notion')
     if can_instagram:
+        print('start init instagram')
         instagram = Instagram()
         instagram.login(secrets_instagram['username'], secrets_instagram['password'])
+        print('end init instagram')
 
     while True:
         # get all unpost notion rows
