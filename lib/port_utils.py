@@ -281,33 +281,31 @@ def post_row_to_instagram(row, webhook_url, notion):
         webhook_url: instance of zapier url
         notion: (notion Client) Notion client object
     """
-    # verify if the row is not already tweeted
-    if ~row.tweeted:
-        # get thread from notion and the retweet URL if retweet
-        thread, retweet_url = row.get_tweet_thread()
+    
+    # get thread from notion and the retweet URL if retweet
+    thread, retweet_url = row.get_tweet_thread()
 
-        for tweet in thread:
-            # 定义要发送的数据
-            data = {
-                "text": tweet['text'],
-                "image": tweet['images'][0]
-            }
+    for tweet in thread:
+        # 定义要发送的数据
+        data = {
+            "text": tweet['text'],
+            "image": tweet['images'][0]
+        }
 
-            # 发送 POST 请求到 Zapier Webhook
-            response = requests.post(webhook_url, json=data)
+        # 发送 POST 请求到 Zapier Webhook
+        response = requests.post(webhook_url, json=data)
 
-            # 检查响应状态码
-            if response.status_code == 200:
-                print("请求已成功发送到 Zapier Webhook！")
-                # update Notion
-                row.posted_platform.append(constants.SUPPORT_PLATFORM.get('instagram'))
-                posted_platform = [{'name': obj} for obj in row.posted_platform]
-                updates = {'Posted Platform': {
-                    "multi_select": posted_platform}}
-                notion.pages.update(row.pageID, properties=updates)
-                print('Updated Notion')
-            else:
-                print("请求发送失败。响应状态码：", response.status_code)
+        # 检查响应状态码
+        if response.status_code == 200:
+            print("请求已成功发送到 Zapier Webhook！")
+            # update Notion
+            row.posted_platform.append(constants.SUPPORT_PLATFORM.get('instagram'))
+            posted_platform = [{'name': obj} for obj in row.posted_platform]
+            updates = {'Posted Platform': {
+                "multi_select": posted_platform}}
+            notion.pages.update(row.pageID, properties=updates)
+            print('Updated Notion')
+        else:
+            print("请求发送失败。响应状态码：", response.status_code)
 
-    else:
-        print('Already tweeted')
+
