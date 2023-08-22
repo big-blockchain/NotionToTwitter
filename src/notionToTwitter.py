@@ -12,10 +12,11 @@ import argparse
 
 from TwitterAPI import TwitterAPI
 from notion_client import Client
+from instagrapi import Client as Instagram
 
 from lib.port_utils import get_all_unpost_rows_from_notion_database, filter_rows_to_be_posted_based_on_date, \
     post_row_to_twitter, \
-    post_row_to_instagram
+    post_row_to_instagram, post_row_to_instagram_by_api
 from lib.port_utils import NotionRow
 
 from globalStore import constants
@@ -65,6 +66,9 @@ if __name__ == "__main__":
     # initialize notion client and determine notion DB
     notion = Client(auth=secrets_notion['notionToken'])
     notionDB_id = secrets_notion['databaseID']
+    if can_instagram:
+        instagram = Instagram()
+        instagram.login(secrets_instagram['username'], secrets_instagram['password'])
 
     while True:
         # get all unpost notion rows
@@ -103,8 +107,9 @@ if __name__ == "__main__":
 
             if can_instagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.posted_platform:
-                webhook_url = secrets_instagram['zapierWebhook']
-                post_row_to_instagram(row, webhook_url, notion)
+                post_row_to_instagram_by_api(row, instagram, notion)
+                # webhook_url = secrets_instagram['zapierWebhook']
+                # post_row_to_instagram(row, webhook_url, notion)
             else:
                 print('no instagram platform', can_tweet)
 
