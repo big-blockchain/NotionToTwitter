@@ -6,6 +6,8 @@ End-to-end script for posting twitter threads from a Notion Database of your cho
 import sys
 
 import time
+import traceback
+
 import arrow
 import json
 import argparse
@@ -98,14 +100,23 @@ if __name__ == "__main__":
                     access_token=secrets_twitter['AccessToken'],
                     access_token_secret=secrets_twitter['AccessTokenSecret']
                 )
-                post_row_to_twitter(row, api_v1, api_v2, notion)
+                try:
+                    post_row_to_twitter(row, api_v1, api_v2, notion)
+                except:
+                    traceback.print_exc()
+                    print('post twitter failed.')
             else:
                 print('no tweet platform', can_tweet)
 
             if can_instagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.posted_platform:
                 webhook_url = secrets_instagram['zapierWebhook']
-                post_row_to_instagram(row, webhook_url, notion)
+
+                try:
+                    post_row_to_instagram(row, webhook_url, notion)
+                except:
+                    traceback.print_exc()
+                    print('post instagram failed.')
             else:
                 print('no instagram platform', can_tweet)
 
