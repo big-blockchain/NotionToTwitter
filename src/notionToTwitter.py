@@ -70,9 +70,9 @@ if __name__ == "__main__":
     notion = Client(auth=secrets_notion['notionToken'])
     notionDB_id = secrets_notion['databaseID']
 
-    if can_instagram:
-        instagram = Instagram()
-        instagram.login(secrets_instagram['username'], secrets_instagram['password'])
+    # if can_instagram:
+    #     instagram = Instagram()
+    #     instagram.login(secrets_instagram['username'], secrets_instagram['password'])
 
     while True:
         # get all unpost notion rows
@@ -115,11 +115,10 @@ if __name__ == "__main__":
 
             if can_instagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.posted_platform:
-                # webhook_url = secrets_instagram['zapierWebhook']
-                #     post_row_to_instagram(row, webhook_url, notion)
-
                 try:
-                    post_row_to_instagram_by_api(row, instagram, notion)
+                    webhook_url = secrets_instagram['zapierWebhook']
+                    post_row_to_instagram(row, webhook_url, notion)
+                    # post_row_to_instagram_by_api(row, instagram, notion)
                 except:
                     traceback.print_exc()
                     print('post instagram failed.')
