@@ -259,7 +259,7 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
                     tweeted = False
                     break
                 else:
-                    print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
+                    print('UPDATE TWITTER STATUS SUCCESS' + str(row.title))
 
                 # update reply to ID
                 reply_to_id = r.data["id"]  # 不存在的话抛出错误 Keyerror

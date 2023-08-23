@@ -70,11 +70,11 @@ if __name__ == "__main__":
     notion = Client(auth=secrets_notion['notionToken'])
     notionDB_id = secrets_notion['databaseID']
     print('end init notion')
-    if can_instagram:
-        print('start init instagram')
-        instagram = Instagram()
-        instagram.login(secrets_instagram['username'], secrets_instagram['password'])
-        print('end init instagram')
+    # if can_instagram:
+    #     print('start init instagram')
+    #     instagram = Instagram()
+    #     instagram.login(secrets_instagram['username'], secrets_instagram['password'])
+    #     print('end init instagram')
 
     while True:
         # get all unpost notion rows
@@ -119,13 +119,13 @@ if __name__ == "__main__":
             if can_instagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.posted_platform:
                 try:
-                    post_row_to_instagram_by_api(row, instagram, notion)
+                    webhook_url = secrets_instagram['zapierWebhook']
+                    post_row_to_instagram(row, webhook_url, notion)
+                    # post_row_to_instagram_by_api(row, instagram, notion)
                 except:
                     # 打印错误的堆栈信息
                     traceback.print_exc()
                     print('post row to instagram error')
-                # webhook_url = secrets_instagram['zapierWebhook']
-                # post_row_to_instagram(row, webhook_url, notion)
             else:
                 print('no instagram platform', can_tweet)
 
