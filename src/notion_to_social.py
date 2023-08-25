@@ -1,36 +1,30 @@
 """
-Author: Nandita Bhaskhar
-End-to-end script for posting twitter threads from a Notion Database of your choice to your Twitter account
+Author: Damon Xiong
+End-to-end script for posting twitter threads from a Notion Database of your choice to your Scocial account
 """
 
 import sys
-
 import time
 import traceback
-
 import arrow
 import json
 import argparse
+import tweepy
 
 from TwitterAPI import TwitterAPI
 from notion_client import Client
 from instagrapi import Client as Instagram
 
-from lib.port_utils import get_all_unpost_rows_from_notion_database, filter_rows_to_be_posted_based_on_date, \
-    post_row_to_twitter, \
-    post_row_to_instagram, post_row_to_instagram_by_api
-from lib.port_utils import NotionRow
-
+from lib.notion_utils import NotionRow, filter_rows_to_be_posted_based_on_date, \
+    get_all_unpost_rows_from_notion_database
+from lib.twitter_utils import post_row_to_twitter
+from lib.instagram_utils import post_row_to_instagram
 from globalStore import constants
-import tweepy
-
-sys.path.append('../')
-
 
 # arguments
 PYTHON = sys.executable
 parser = argparse.ArgumentParser()
-parser.add_argument('--project', default='promptgogo', type=str,
+parser.add_argument('--project', default='test', type=str,
                     help='Project name with secrets. Options are: promptgogo')
 parser.add_argument('--sleep', default='300', type=str,
                     help='Sleep time between posting')
@@ -47,28 +41,20 @@ if __name__ == "__main__":
     # open secrets
     can_tweet = False
     can_instagram = False
-    try:
-        with open("../secrets/secrets_twitter_{}.json".format(args.project), "r") as f:
-            secrets_twitter = json.load(f)
-            can_tweet = True
-    except FileNotFoundError:
-        print("twitter config is not found")
-        can_tweet = False
 
-    with open("../secrets/secrets_notion_{}.json".format(args.project), "r") as f:
-        secrets_notion = json.load(f)
+    with open("../secrets/secrets_{}.json".format(args.project), "r") as f:
+        secrets = json.load(f)
 
-    try:
-        with open("../secrets/secrets_instagram_{}.json".format(args.project), "r") as f:
-            secrets_instagram = json.load(f)
-            can_instagram = True
-    except FileNotFoundError:
-        print("instagram config is not found")
-        can_instagram = False
+    if 'twitter' in secrets:
+        print('Twitter secrets found')
+        can_tweet = True
+    if 'instagram' in secrets:
+        print('Instagram secrets found')
+        can_instagram = True
 
     # initialize notion client and determine notion DB
-    notion = Client(auth=secrets_notion['notionToken'])
-    notionDB_id = secrets_notion['databaseID']
+    notion = Client(auth=secrets.get('notion').get('notionToken'))
+    notionDB_id = secrets.get('notion').get('databaseID')
 
     # if can_instagram:
     #     instagram = Instagram()
@@ -92,18 +78,18 @@ if __name__ == "__main__":
             if can_tweet and constants.SUPPORT_PLATFORM.get('twitter') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('twitter') not in row.posted_platform:
                 # start a twitter api session
-                api_v1 = TwitterAPI(consumer_key=secrets_twitter['APIConsumerKey'],
-                                    consumer_secret=secrets_twitter['APIConsumerSecret'],
-                                    access_token_key=secrets_twitter['AccessToken'],
-                                    access_token_secret=secrets_twitter['AccessTokenSecret']
+                api_v1 = TwitterAPI(consumer_key=secrets.get('twitter').get('APIConsumerKey'),
+                                    consumer_secret=secrets.get('twitter').get('APIConsumerSecret'),
+                                    access_token_key=secrets.get('twitter').get('AccessToken'),
+                                    access_token_secret=secrets.get('twitter').get('AccessTokenSecret')
                                     )
 
                 api_v2 = tweepy.Client(
-                    bearer_token=secrets_twitter['BearerToken'],
-                    consumer_key=secrets_twitter['APIConsumerKey'],
-                    consumer_secret=secrets_twitter['APIConsumerSecret'],
-                    access_token=secrets_twitter['AccessToken'],
-                    access_token_secret=secrets_twitter['AccessTokenSecret']
+                    bearer_token=secrets.get('twitter').get('BearerToken'),
+                    consumer_key=secrets.get('twitter').get('APIConsumerKey'),
+                    consumer_secret=secrets.get('twitter').get('APIConsumerSecret'),
+                    access_token=secrets.get('twitter').get('AccessToken'),
+                    access_token_secret=secrets.get('twitter').get('AccessTokenSecret')
                 )
                 try:
                     post_row_to_twitter(row, api_v1, api_v2, notion)
@@ -116,7 +102,7 @@ if __name__ == "__main__":
             if can_instagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.posted_platform:
                 try:
-                    webhook_url = secrets_instagram['zapierWebhook']
+                    webhook_url = secrets.get('instagram').get('zapierWebhook')
                     post_row_to_instagram(row, webhook_url, notion)
                     # post_row_to_instagram_by_api(row, instagram, notion)
                 except:

@@ -170,8 +170,7 @@ starterSet
 
 # %%
 for idNo in starterSet:
-    
-
+    print(idNo)
 # %%
 
 # %%
