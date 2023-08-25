@@ -269,6 +269,8 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
 
                                 # 将最后一个片段添加到片段列表中
                                 fragments.append(current_fragment_text)
+                    if len(current_fragment_text) > 0:
+                        fragments.append(current_fragment_text)
 
                     parent_tweet = reply_to_id
                     for tweet_text in fragments:
@@ -286,7 +288,7 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
             else:
                 print("retweetURLretweetURLretweetURL", retweet_url)
                 username, tweet_id = extract_twitter_info(retweet_url)
-                max_length = 270
+                max_length = 280
                 if len(tweet_text) > max_length:
                     # 使用正则表达式将长文本分割为段落
                     paragraphs = re.split(r'\n', tweet_text)
@@ -297,6 +299,8 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
                     # 当前片段的文本
                     current_fragment_text = ""
                     for paragraph in paragraphs:
+                        if len(paragraph) == 0:
+                            continue
                         if len(current_fragment_text + paragraph) <= max_length:
                             current_fragment_text += (paragraph + '\n')
                         else:
@@ -319,6 +323,8 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
 
                                 # 将最后一个片段添加到片段列表中
                                 fragments.append(current_fragment_text)
+                    if len(current_fragment_text) > 0:
+                        fragments.append(current_fragment_text)
 
                     parent_tweet = tweet_id
                     for tweet_text in fragments:
