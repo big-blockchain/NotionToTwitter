@@ -14,7 +14,7 @@ import argparse
 
 from TwitterAPI import TwitterAPI
 from notion_client import Client
-from instagrapi import Client as Instagram
+# from instagrapi import Client as Instagram
 
 from lib.port_utils import get_all_unpost_rows_from_notion_database, filter_rows_to_be_posted_based_on_date, \
     post_row_to_twitter, \
