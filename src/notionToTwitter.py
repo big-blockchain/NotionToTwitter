@@ -130,5 +130,6 @@ if __name__ == "__main__":
 
                 updates = {'Posted?': {"checkbox": True}}
                 notion.pages.update(row.pageID, properties=updates)
+            time.sleep(60)
 
         time.sleep(int(args.sleep))
