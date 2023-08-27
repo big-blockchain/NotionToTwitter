@@ -5,16 +5,8 @@ Notion to Twitter helper functions
 
 import os
 import re
-import sys
-import time
-import traceback
-import textwrap
-import arrow
 import requests
 
-from io import BytesIO
-from PIL import Image
-from globalStore import constants
 from lib.notion_utils import update_notion_posted_platform
 
 

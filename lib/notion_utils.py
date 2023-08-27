@@ -3,21 +3,12 @@ Author: Nandita Bhaskhar
 Notion to Twitter helper functions
 """
 
-import os
-import re
-import sys
 import time
-import traceback
-import textwrap
 import arrow
-import requests
-
-from io import BytesIO
-from PIL import Image
 from globalStore import constants
 
 
-class NotionRow():
+class NotionRow:
     """ A class denoting a row in the Notion twitter database """
 
     def __init__(self, row, notion):
