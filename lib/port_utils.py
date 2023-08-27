@@ -288,7 +288,7 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
             else:
                 print("retweetURLretweetURLretweetURL", retweet_url)
                 username, tweet_id = extract_twitter_info(retweet_url)
-                max_length = 280
+                max_length = 279
                 if len(tweet_text) > max_length:
                     # 使用正则表达式将长文本分割为段落
                     paragraphs = re.split(r'\n', tweet_text)
