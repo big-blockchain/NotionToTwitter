@@ -10,6 +10,7 @@ import arrow
 import json
 import argparse
 
+import tweepy.errors
 from notion_client import Client
 
 from lib.notion_utils import NotionRow, filter_rows_to_be_posted_based_on_date, \
@@ -25,8 +26,8 @@ PYTHON = sys.executable
 parser = argparse.ArgumentParser()
 parser.add_argument('--project', default='test', type=str,
                     help='Project name with secrets. Options are: promptgogo')
-parser.add_argument('--sleep', default='300', type=str,
-                    help='Sleep time between posting')
+parser.add_argument('--sleep', default='14400', type=str,
+                    help='Sleep time between posting default is 14400 seconds(4 hours)')
 
 # main script
 if __name__ == "__main__":
@@ -90,6 +91,9 @@ if __name__ == "__main__":
                 # start a twitter api session
                 try:
                     twitter_client.post_row_to_twitter(row, notion)
+                except tweepy.errors.TooManyRequests:
+                    print('Too many requests')
+                    twitter_client.rate_limter.limiter_now()
                 except:
                     traceback.print_exc()
                     print('post twitter failed.')

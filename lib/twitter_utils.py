@@ -60,7 +60,7 @@ class TwitterClient:
         if ~row.tweeted:
             # defaults
             reply_to_id, media_id, tweet_text = None, None, None
-            tweeted, first_tweet = True, True
+            tweeted = True
 
             # get thread from notion and the retweet URL if retweet
             thread, retweet_url = row.get_tweet_thread()
@@ -68,28 +68,6 @@ class TwitterClient:
             for tweet in thread:
                 # tweet text
                 tweet_text = tweet['text']
-
-                # media images
-                if tweet['images']:
-                    # loop through images, upload them, get their media ids
-                    media_ids = []
-                    for img in tweet['images']:
-                        # check if img is a local file or a URL
-                        if os.path.isfile(img[img['type']]['url']):
-                            # read data from local file
-                            file = open(img[img['type']]['url'], 'rb')
-                            data = file.read()
-                        else:
-                            # read data from URL
-                            response = requests.get(img[img['type']]['url'])
-                            data = response.content
-                        w = self.api_v1.request('media/upload', None, {'media': data})
-                        print('UPLOAD MEDIA SUCCESS' if w.status_code ==
-                                                        200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
-                        if w.status_code == 200:
-                            media_ids.append(str(w.json()['media_id']))
-                else:
-                    media_ids = None
 
                 # post tweet with a reference to uploaded image as a reply to the replyToID
                 if reply_to_id:
@@ -132,19 +110,78 @@ class TwitterClient:
                         if not self.rate_limter.is_allowed_for_request_length(len(fragments)):
                             raise Exception("Too many requests. Please try again later.")
 
+                        # media images
+                        if tweet['images']:
+                            # loop through images, upload them, get their media ids
+                            media_ids = []
+                            for img in tweet['images']:
+                                # check if img is a local file or a URL
+                                if os.path.isfile(img[img['type']]['url']):
+                                    # read data from local file
+                                    file = open(img[img['type']]['url'], 'rb')
+                                    data = file.read()
+                                else:
+                                    # read data from URL
+                                    response = requests.get(img[img['type']]['url'])
+                                    data = response.content
+                                w = self.api_v1.request('media/upload', None, {'media': data})
+                                print('UPLOAD MEDIA SUCCESS' if w.status_code ==
+                                                                200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
+                                if w.status_code == 200:
+                                    media_ids.append(str(w.json()['media_id']))
+                        else:
+                            media_ids = None
+
                         for tweet_text in fragments:
                             if parent_tweet is None and len(media_ids) > 0:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, media_ids=media_ids)
+                                self.rate_limter.add_allowed_time()
                                 parent_tweet = r.data['id']
                             else:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, in_reply_to_tweet_id=parent_tweet)
+                                self.rate_limter.add_allowed_time()
                                 parent_tweet = r.data['id']
+
+                            if r.errors:
+                                error_messages = [error['message'] for error in r.errors]
+                                print('UPDATE STATUS FAILURE: '.join(error_messages))
+                            else:
+                                print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
                     else:
-                        if self.rate_limter.is_allowed():
+                        if self.rate_limter.is_allowed_for_request_length(1):
+                            # media images
+                            if tweet['images']:
+                                # loop through images, upload them, get their media ids
+                                media_ids = []
+                                for img in tweet['images']:
+                                    # check if img is a local file or a URL
+                                    if os.path.isfile(img[img['type']]['url']):
+                                        # read data from local file
+                                        file = open(img[img['type']]['url'], 'rb')
+                                        data = file.read()
+                                    else:
+                                        # read data from URL
+                                        response = requests.get(img[img['type']]['url'])
+                                        data = response.content
+                                    w = self.api_v1.request('media/upload', None, {'media': data})
+                                    print('UPLOAD MEDIA SUCCESS' if w.status_code ==
+                                                                    200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
+                                    if w.status_code == 200:
+                                        media_ids.append(str(w.json()['media_id']))
+                            else:
+                                media_ids = None
+
                             r = self.api_v2.create_tweet(
                                 text=tweet_text, in_reply_to_tweet_id=reply_to_id, media_ids=media_ids)
+                            self.rate_limter.add_allowed_time()
+
+                            if r.errors:
+                                error_messages = [error['message'] for error in r.errors]
+                                print('UPDATE STATUS FAILURE: '.join(error_messages))
+                            else:
+                                print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
                         else:
                             raise Exception("Too many requests. Please try again later.")
                 else:
@@ -187,36 +224,84 @@ class TwitterClient:
                         parent_tweet = tweet_id
                         if not self.rate_limter.is_allowed_for_request_length(len(fragments)):
                             raise Exception("Too many requests. Please try again later.")
+
+                        # media images
+                        if tweet['images']:
+                            # loop through images, upload them, get their media ids
+                            media_ids = []
+                            for img in tweet['images']:
+                                # check if img is a local file or a URL
+                                if os.path.isfile(img[img['type']]['url']):
+                                    # read data from local file
+                                    file = open(img[img['type']]['url'], 'rb')
+                                    data = file.read()
+                                else:
+                                    # read data from URL
+                                    response = requests.get(img[img['type']]['url'])
+                                    data = response.content
+                                w = self.api_v1.request('media/upload', None, {'media': data})
+                                print('UPLOAD MEDIA SUCCESS' if w.status_code ==
+                                                                200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
+                                if w.status_code == 200:
+                                    media_ids.append(str(w.json()['media_id']))
+                        else:
+                            media_ids = None
+
                         for tweet_text in fragments:
                             if parent_tweet is None and len(media_ids) > 0:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, media_ids=media_ids)
+                                self.rate_limter.add_allowed_time()
                                 parent_tweet = r.data['id']
                             else:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, in_reply_to_tweet_id=parent_tweet)
+                                self.rate_limter.add_allowed_time()
                                 parent_tweet = r.data['id']
+
+                            if r.errors:
+                                error_messages = [error['message'] for error in r.errors]
+                                print('UPDATE STATUS FAILURE: '.join(error_messages))
+                            else:
+                                print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
                     else:
                         if self.rate_limter.is_allowed():
+                            # media images
+                            if tweet['images']:
+                                # loop through images, upload them, get their media ids
+                                media_ids = []
+                                for img in tweet['images']:
+                                    # check if img is a local file or a URL
+                                    if os.path.isfile(img[img['type']]['url']):
+                                        # read data from local file
+                                        file = open(img[img['type']]['url'], 'rb')
+                                        data = file.read()
+                                    else:
+                                        # read data from URL
+                                        response = requests.get(img[img['type']]['url'])
+                                        data = response.content
+                                    w = self.api_v1.request('media/upload', None, {'media': data})
+                                    print('UPLOAD MEDIA SUCCESS' if w.status_code ==
+                                                                    200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
+                                    if w.status_code == 200:
+                                        media_ids.append(str(w.json()['media_id']))
+                            else:
+                                media_ids = None
+
                             r = self.api_v2.create_tweet(
                                 text=tweet_text, in_reply_to_tweet_id=tweet_id, media_ids=media_ids)
+                            self.rate_limter.add_allowed_time()
+
+                            if r.errors:
+                                error_messages = [error['message'] for error in r.errors]
+                                print('UPDATE STATUS FAILURE: '.join(error_messages))
+                            else:
+                                print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
                         else:
                             raise Exception("Too many requests. Please try again later.")
-                # update error text
-                if r.errors:
-                    # 将错误信息记录到 Notion 页面的 "Error Message" 属性中
-                    error_messages = [error['message'] for error in r.errors]
-                    print('UPDATE STATUS FAILURE: '.join(error_messages))
-                    tweeted = False
-                    break
-                else:
-                    print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
 
                 # update reply to ID
                 reply_to_id = r.data["id"]  # 不存在的话抛出错误 Keyerror
-                # thread tweet ID
-                if first_tweet:
-                    first_tweet = False
 
             # update Notion
             if tweeted:

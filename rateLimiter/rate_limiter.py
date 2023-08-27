@@ -15,10 +15,16 @@ class RateLimiter:
 
         # 检查请求数是否超过限制
         if len(self.timestamps) + request_length < self.max_requests:
-            self.timestamps.append(current_time)
             return True
         else:
             return False
+
+    def limiter_now(self):
+        while len(self.timestamps) < self.max_requests:
+            self.timestamps.append(time.time())
+
+    def add_allowed_time(self):
+        self.timestamps.append(time.time())
 
     def is_allowed(self):
         current_time = time.time()
