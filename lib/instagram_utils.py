@@ -11,6 +11,12 @@ from PIL import Image
 from lib.notion_utils import update_notion_posted_platform
 
 
+class InstagramClient:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+
 def post_row_to_instagram(row, webhook_url, notion):
     """
     Post notion row to twitter + prints staus
