@@ -323,6 +323,8 @@ def post_row_to_twitter(row, api_v1, api_v2, notion):
 
                                 # 将最后一个片段添加到片段列表中
                                 fragments.append(current_fragment_text)
+                                current_fragment_text = ""
+
                     if len(current_fragment_text) > 0:
                         fragments.append(current_fragment_text)
 
