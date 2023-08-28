@@ -13,7 +13,7 @@ import argparse
 import tweepy.errors
 
 from lib.notion_utils import NotionClient, NotionRow
-from lib.instagram_utils import post_row_to_instagram
+from lib.instagram_utils import post_row_to_instagram, InstagramClient
 from globalStore import constants
 from lib.twitter_utils import TwitterClient
 
@@ -81,9 +81,16 @@ if __name__ == "__main__":
             if can_instagram and constants.SUPPORT_PLATFORM.get('instagram') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('instagram') not in row.posted_platform:
                 try:
-                    webhook_url = secrets.get('instagram').get('zapierWebhook')
-                    post_row_to_instagram(row, webhook_url, notion)
+                    # webhook_url = secrets.get('instagram').get('zapierWebhook')
+                    # post_row_to_instagram(row, webhook_url, notion)
                     # post_row_to_instagram_by_api(row, instagram, notion)
+                    instagram = InstagramClient(
+                        access_token=secrets.get('instagram').get('accessToken'),
+                        client_id=secrets.get('instagram').get('clientId'),
+                        client_secret=secrets.get('instagram').get('clientSecret'),
+                        user_id=secrets.get('instagram').get('userId'),
+                    )
+                    instagram.post(row, notion)
                 except Exception as e:
                     print(str(e))
                     traceback.print_exc()
