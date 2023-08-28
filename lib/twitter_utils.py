@@ -83,6 +83,9 @@ class TwitterClient:
                         # 当前片段的文本
                         current_fragment_text = ""
                         for paragraph in paragraphs:
+                            if len(paragraph) == 0:
+                                continue
+
                             if len(current_fragment_text + paragraph) <= max_length:
                                 current_fragment_text += (paragraph + '\n')
                             else:
@@ -105,6 +108,10 @@ class TwitterClient:
 
                                     # 将最后一个片段添加到片段列表中
                                     fragments.append(current_fragment_text)
+                                    current_fragment_text = ""
+
+                        if len(current_fragment_text) > 0:
+                            fragments.append(current_fragment_text)
 
                         parent_tweet = reply_to_id
                         if not self.rate_limter.is_allowed_for_request_length(len(fragments)):
@@ -198,6 +205,8 @@ class TwitterClient:
                         # 当前片段的文本
                         current_fragment_text = ""
                         for paragraph in paragraphs:
+                            if len(paragraph) == 0:
+                                continue
                             if len(current_fragment_text + paragraph) <= max_length:
                                 current_fragment_text += (paragraph + '\n')
                             else:
@@ -220,6 +229,10 @@ class TwitterClient:
 
                                     # 将最后一个片段添加到片段列表中
                                     fragments.append(current_fragment_text)
+                                    current_fragment_text = ""
+
+                        if len(current_fragment_text) > 0:
+                            fragments.append(current_fragment_text)
 
                         parent_tweet = tweet_id
                         if not self.rate_limter.is_allowed_for_request_length(len(fragments)):
