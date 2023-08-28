@@ -49,6 +49,7 @@ if __name__ == "__main__":
         can_instagram = True
 
     while True:
+        print('Start Action at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
         # initialize notion client and determine notion DB
         notion = NotionClient(token=secrets.get('notion').get('notionToken'),
                               db_id=secrets.get('notion').get('databaseID'))
@@ -105,4 +106,5 @@ if __name__ == "__main__":
             # hold 60 seconds for every row sended
             time.sleep(60)
 
+        print('End Action at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
         time.sleep(int(args.sleep))
