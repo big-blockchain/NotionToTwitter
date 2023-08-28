@@ -11,17 +11,13 @@ import json
 import argparse
 
 import tweepy.errors
-from notion_client import Client
 
-from lib.notion_utils import NotionRow, filter_rows_to_be_posted_based_on_date, \
-    get_all_unpost_rows_from_notion_database
+from lib.notion_utils import NotionClient, NotionRow
 from lib.instagram_utils import post_row_to_instagram
 from globalStore import constants
 from lib.twitter_utils import TwitterClient
 
 # arguments
-from rateLimiter.rate_limiter import RateLimiter
-
 PYTHON = sys.executable
 parser = argparse.ArgumentParser()
 parser.add_argument('--project', default='test', type=str,
@@ -52,30 +48,13 @@ if __name__ == "__main__":
         print('Instagram secrets found')
         can_instagram = True
 
-    # initialize notion client and determine notion DB
-    notion = Client(auth=secrets.get('notion').get('notionToken'))
-    notionDB_id = secrets.get('notion').get('databaseID')
-
-    instagram_limiter = RateLimiter(max_requests=50, duration=24 * 60 * 60)  # 10个请求在24小时内
-
-    # if can_instagram:
-    #     instagram = Instagram()
-    #     instagram.login(secrets_instagram['username'], secrets_instagram['password'])
-
     while True:
-        # get all unpost notion rows
-        allNotionRows = get_all_unpost_rows_from_notion_database(notion, notionDB_id)
-
-        # get today's date
-        datetime = arrow.now().to('utc').date()
-        print(datetime)
-
-        # filter based on datetime
-        todayNotionRows = filter_rows_to_be_posted_based_on_date(allNotionRows, datetime)
-        print(str(len(todayNotionRows)) + ' filtered rows for today')
+        # initialize notion client and determine notion DB
+        notion = NotionClient(token=secrets.get('notion').get('notionToken'),
+                              db_id=secrets.get('notion').get('databaseID'))
 
         # loop over row in filtered rows collection
-        for row in todayNotionRows:
+        for row in notion.filtered_rows:
             row = NotionRow(row, notion)
             if can_tweet and constants.SUPPORT_PLATFORM.get('twitter') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('twitter') not in row.posted_platform:
@@ -92,7 +71,8 @@ if __name__ == "__main__":
                 except tweepy.errors.TooManyRequests:
                     print('Too many requests')
                     twitter_client.rate_limter.limiter_now()
-                except:
+                except Exception as e:
+                    print(str(e))
                     traceback.print_exc()
                     print('post twitter failed.')
             else:
@@ -104,7 +84,8 @@ if __name__ == "__main__":
                     webhook_url = secrets.get('instagram').get('zapierWebhook')
                     post_row_to_instagram(row, webhook_url, notion)
                     # post_row_to_instagram_by_api(row, instagram, notion)
-                except:
+                except Exception as e:
+                    print(str(e))
                     traceback.print_exc()
                     print('post instagram failed.')
             else:
@@ -112,9 +93,8 @@ if __name__ == "__main__":
 
             if sorted(row.posted_platform) == sorted(row.platform):
                 print('All platform posted')
+                notion.update_notion_checked_posted(row)
 
-                updates = {'Posted?': {"checkbox": True}}
-                notion.pages.update(row.pageID, properties=updates)
             # hold 60 seconds for every row sended
             time.sleep(60)
 

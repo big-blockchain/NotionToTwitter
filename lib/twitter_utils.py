@@ -1,5 +1,5 @@
 """
-Author: Nandita Bhaskhar
+Author: Damon Xiong
 Notion to Twitter helper functions
 """
 
@@ -9,7 +9,6 @@ import requests
 import tweepy
 from TwitterAPI import TwitterAPI
 
-from lib.notion_utils import update_notion_posted_platform
 from rateLimiter.rate_limiter import RateLimiter
 
 
@@ -318,7 +317,7 @@ class TwitterClient:
 
             # update Notion
             if tweeted:
-                update_notion_posted_platform(notion, row, 'twitter')
+                notion.update_notion_posted_platform(row, 'twitter')
 
         else:
             print('Already tweeted')

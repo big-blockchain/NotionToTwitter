@@ -1,5 +1,5 @@
 """
-Author: Nandita Bhaskhar
+Author: Damon Xiong
 Notion to Twitter helper functions
 """
 
@@ -8,14 +8,16 @@ import requests
 
 from PIL import Image
 
-from lib.notion_utils import update_notion_posted_platform
+from rateLimiter.rate_limiter import RateLimiter
 
 
 class InstagramClient:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, access_token):
+        self.access_token = access_token
+        self.rate_limter = RateLimiter(max_requests=50, duration=24 * 60 * 60)
 
+    def exchage_token(self):
+        pass
 
 def post_row_to_instagram(row, webhook_url, notion):
     """
@@ -43,7 +45,7 @@ def post_row_to_instagram(row, webhook_url, notion):
         if response.status_code == 200:
             print("请求已成功发送到 Zapier Webhook！")
             # update Notion
-            update_notion_posted_platform(notion, row, 'instagram')
+            notion.update_notion_posted_platform(row, 'instagram')
         else:
             print("请求发送失败。响应状态码：", response.status_code)
 
@@ -83,4 +85,4 @@ def post_row_to_instagram_by_api(row, ins_client, notion):
             ins_client.photo_upload(paths[0], tweet['text'])
             print("upload photo success")
 
-        update_notion_posted_platform(notion, row, 'instagram')
+        notion.update_notion_posted_platform(row, 'instagram')
