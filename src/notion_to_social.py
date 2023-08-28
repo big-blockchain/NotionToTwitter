@@ -58,15 +58,6 @@ if __name__ == "__main__":
 
     instagram_limiter = RateLimiter(max_requests=50, duration=24 * 60 * 60)  # 10个请求在24小时内
 
-    if can_tweet:
-        twitter_client = TwitterClient(
-            bearer_token=secrets.get('twitter').get('BearerToken'),
-            consumer_key=secrets.get('twitter').get('APIConsumerKey'),
-            consumer_secret=secrets.get('twitter').get('APIConsumerSecret'),
-            access_token=secrets.get('twitter').get('AccessToken'),
-            access_token_secret=secrets.get('twitter').get('AccessTokenSecret')
-        )
-
     # if can_instagram:
     #     instagram = Instagram()
     #     instagram.login(secrets_instagram['username'], secrets_instagram['password'])
@@ -88,6 +79,13 @@ if __name__ == "__main__":
             row = NotionRow(row, notion)
             if can_tweet and constants.SUPPORT_PLATFORM.get('twitter') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('twitter') not in row.posted_platform:
+                twitter_client = TwitterClient(
+                    bearer_token=secrets.get('twitter').get('BearerToken'),
+                    consumer_key=secrets.get('twitter').get('APIConsumerKey'),
+                    consumer_secret=secrets.get('twitter').get('APIConsumerSecret'),
+                    access_token=secrets.get('twitter').get('AccessToken'),
+                    access_token_secret=secrets.get('twitter').get('AccessTokenSecret')
+                )
                 # start a twitter api session
                 try:
                     twitter_client.post_row_to_twitter(row, notion)
