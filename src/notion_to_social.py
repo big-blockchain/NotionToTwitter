@@ -22,7 +22,7 @@ PYTHON = sys.executable
 parser = argparse.ArgumentParser()
 parser.add_argument('--project', default='test', type=str,
                     help='Project name with secrets. Options are: promptgogo')
-parser.add_argument('--sleep', default='14400', type=str,
+parser.add_argument('--sleep', default='14400', type=int,
                     help='Sleep time between posting default is 14400 seconds(4 hours)')
 
 # main script
