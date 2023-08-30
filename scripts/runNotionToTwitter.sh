@@ -3,4 +3,4 @@
 # write your scripts here
 
 cd ./src
-python ./notionToTwitter.py --project mountleap >> ../STDOUTlog-mountleap.txt
+python ./notionToTwitter.py >> ../STDOUTlog.txt

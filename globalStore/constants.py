@@ -2,6 +2,10 @@
 Author: Nandita Bhaskhar
 All global constants
 """
+import sys
+sys.path.append('../')
+
+### All global constants here
 
 # enter paths to the correct secret files
 
