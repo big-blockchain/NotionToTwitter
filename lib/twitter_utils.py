@@ -122,13 +122,13 @@ class TwitterClient:
                             media_ids = []
                             for img in tweet['images']:
                                 # check if img is a local file or a URL
-                                if os.path.isfile(img[img['type']]['url']):
+                                if os.path.isfile(img):
                                     # read data from local file
-                                    file = open(img[img['type']]['url'], 'rb')
+                                    file = open(img, 'rb')
                                     data = file.read()
                                 else:
                                     # read data from URL
-                                    response = requests.get(img[img['type']]['url'])
+                                    response = requests.get(img)
                                     data = response.content
                                 w = self.api_v1.request('media/upload', None, {'media': data})
                                 print('UPLOAD MEDIA SUCCESS' if w.status_code ==
@@ -163,13 +163,13 @@ class TwitterClient:
                                 media_ids = []
                                 for img in tweet['images']:
                                     # check if img is a local file or a URL
-                                    if os.path.isfile(img[img['type']]['url']):
+                                    if os.path.isfile(img):
                                         # read data from local file
-                                        file = open(img[img['type']]['url'], 'rb')
+                                        file = open(img, 'rb')
                                         data = file.read()
                                     else:
                                         # read data from URL
-                                        response = requests.get(img[img['type']]['url'])
+                                        response = requests.get(img)
                                         data = response.content
                                     w = self.api_v1.request('media/upload', None, {'media': data})
                                     print('UPLOAD MEDIA SUCCESS' if w.status_code ==
@@ -243,13 +243,13 @@ class TwitterClient:
                             media_ids = []
                             for img in tweet['images']:
                                 # check if img is a local file or a URL
-                                if os.path.isfile(img[img['type']]['url']):
+                                if os.path.isfile(img):
                                     # read data from local file
-                                    file = open(img[img['type']]['url'], 'rb')
+                                    file = open(img, 'rb')
                                     data = file.read()
                                 else:
                                     # read data from URL
-                                    response = requests.get(img[img['type']]['url'])
+                                    response = requests.get(img)
                                     data = response.content
                                 w = self.api_v1.request('media/upload', None, {'media': data})
                                 print('UPLOAD MEDIA SUCCESS' if w.status_code ==
@@ -284,13 +284,13 @@ class TwitterClient:
                                 media_ids = []
                                 for img in tweet['images']:
                                     # check if img is a local file or a URL
-                                    if os.path.isfile(img[img['type']]['url']):
+                                    if os.path.isfile(img):
                                         # read data from local file
-                                        file = open(img[img['type']]['url'], 'rb')
+                                        file = open(img, 'rb')
                                         data = file.read()
                                     else:
                                         # read data from URL
-                                        response = requests.get(img[img['type']]['url'])
+                                        response = requests.get(img)
                                         data = response.content
                                     w = self.api_v1.request('media/upload', None, {'media': data})
                                     print('UPLOAD MEDIA SUCCESS' if w.status_code ==

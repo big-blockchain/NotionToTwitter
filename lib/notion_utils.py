@@ -129,10 +129,10 @@ class NotionRow:
         self.created = arrow.get(row['created_time']).to('UTC')
         self.lastEdited = arrow.get(row['last_edited_time']).to('UTC')
         self.pageURL = row['url']
-        self.platform = [obj["name"] for obj in row['properties']['Platform']['multi_select']]
+        self.platform = [obj["name"] for obj in row['properties']['Social Media Platform']['multi_select']]
         self.posted_platform = [obj["name"] for obj in row['properties']['Posted Platform']['multi_select']]
 
-        self.title = row['properties']['Name']['title'][0]['text']['content'] if row['properties']['Name'][
+        self.title = row['properties']['Title']['title'][0]['text']['content'] if row['properties']['Title'][
             'title'] else None
 
         try:
@@ -148,7 +148,12 @@ class NotionRow:
 
         self.tweeted = row['properties']['Posted?']['checkbox']
 
-        self.medias = row['properties']['medias']['files']
+        self.medias = row['properties']['Medias Link']['rich_text'][0]['text']['content']
+        if len(row['properties']['Medias Link']['rich_text']) > 0:
+            self.medias = [item for item in
+                           row['properties']['Medias Link']['rich_text'][0]['text']['content'].split(";") if item != '']
+        else:
+            self.medias = []
 
         self.rawContent = notion.notion_client.blocks.children.list(self.pageID)
         self.threadCount = len(self.rawContent['results'])
@@ -175,4 +180,3 @@ class NotionRow:
                 tweet_thread.append(tweet)
 
         return tweet_thread, self.retweetURL
-
