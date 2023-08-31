@@ -56,9 +56,10 @@ class InstagramClient:
         }
 
         params = {
-            'image_url': image_url[0]['external']['url'],
+            'image_url': image_url,
             'caption': caption,
         }
+
         response = requests.post(f"https://graph.facebook.com/{self.api_version}/{self.user_id}/media", headers=headers,
                                  params=params)
         print(response.json())
