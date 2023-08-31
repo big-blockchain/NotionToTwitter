@@ -68,10 +68,10 @@ class TwitterClient:
                 # tweet text
                 tweet_text = tweet['text']
 
+                max_length = 278
+
                 # post tweet with a reference to uploaded image as a reply to the replyToID
                 if reply_to_id:
-                    max_length = 279
-
                     if len(tweet_text) > max_length:
                         # 使用正则表达式将长文本分割为段落
                         paragraphs = re.split(r'\n', tweet_text)
@@ -193,7 +193,6 @@ class TwitterClient:
                 else:
                     print("retweetURLretweetURLretweetURL", retweet_url)
                     username, tweet_id = extract_twitter_info(retweet_url)
-                    max_length = 279
                     if len(tweet_text) > max_length:
                         # 使用正则表达式将长文本分割为段落
                         paragraphs = re.split(r'\n', tweet_text)
