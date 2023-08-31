@@ -32,7 +32,7 @@ class TwitterClient:
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self.bearer_token = bearer_token
-        self.rate_limter = RateLimiter(max_requests=50, duration=24 * 60 * 60)
+        self.rate_limiter = RateLimiter(max_requests=50, duration=24 * 60 * 60)
 
         self.api_v1 = TwitterAPI(consumer_key=consumer_key,
                                  consumer_secret=consumer_secret,
@@ -45,7 +45,7 @@ class TwitterClient:
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
             access_token=access_token,
-            access_token_secret=access_token_secret
+            access_token_secret=access_token_secret,
         )
 
     def post_row_to_twitter(self, row, notion):
@@ -113,7 +113,7 @@ class TwitterClient:
                             fragments.append(current_fragment_text)
 
                         parent_tweet = reply_to_id
-                        if not self.rate_limter.is_allowed_for_request_length(len(fragments)):
+                        if not self.rate_limiter.is_allowed_for_request_length(len(fragments)):
                             raise Exception("Too many requests. Please try again later.")
 
                         # media images
@@ -131,8 +131,8 @@ class TwitterClient:
                                     response = requests.get(img)
                                     data = response.content
                                 w = self.api_v1.request('media/upload', None, {'media': data})
-                                print('UPLOAD MEDIA SUCCESS' if w.status_code ==
-                                                                200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
+                                print('UPLOAD MEDIA SUCCESS' if w.status_code == 200
+                                      else 'UPLOAD MEDIA FAILURE: ' + w.text)
                                 if w.status_code == 200:
                                     media_ids.append(str(w.json()['media_id']))
                         else:
@@ -142,12 +142,12 @@ class TwitterClient:
                             if parent_tweet is None and len(media_ids) > 0:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, media_ids=media_ids)
-                                self.rate_limter.add_allowed_time()
+                                self.rate_limiter.add_allowed_time()
                                 parent_tweet = r.data['id']
                             else:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, in_reply_to_tweet_id=parent_tweet)
-                                self.rate_limter.add_allowed_time()
+                                self.rate_limiter.add_allowed_time()
                                 parent_tweet = r.data['id']
 
                             if r.errors:
@@ -156,7 +156,7 @@ class TwitterClient:
                             else:
                                 print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
                     else:
-                        if self.rate_limter.is_allowed_for_request_length(1):
+                        if self.rate_limiter.is_allowed_for_request_length(1):
                             # media images
                             if tweet['images']:
                                 # loop through images, upload them, get their media ids
@@ -181,7 +181,7 @@ class TwitterClient:
 
                             r = self.api_v2.create_tweet(
                                 text=tweet_text, in_reply_to_tweet_id=reply_to_id, media_ids=media_ids)
-                            self.rate_limter.add_allowed_time()
+                            self.rate_limiter.add_allowed_time()
 
                             if r.errors:
                                 error_messages = [error['message'] for error in r.errors]
@@ -234,7 +234,7 @@ class TwitterClient:
                             fragments.append(current_fragment_text)
 
                         parent_tweet = tweet_id
-                        if not self.rate_limter.is_allowed_for_request_length(len(fragments)):
+                        if not self.rate_limiter.is_allowed_for_request_length(len(fragments)):
                             raise Exception("Too many requests. Please try again later.")
 
                         # media images
@@ -263,12 +263,12 @@ class TwitterClient:
                             if parent_tweet is None and len(media_ids) > 0:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, media_ids=media_ids)
-                                self.rate_limter.add_allowed_time()
+                                self.rate_limiter.add_allowed_time()
                                 parent_tweet = r.data['id']
                             else:
                                 print(len(tweet_text))
                                 r = self.api_v2.create_tweet(text=tweet_text, in_reply_to_tweet_id=parent_tweet)
-                                self.rate_limter.add_allowed_time()
+                                self.rate_limiter.add_allowed_time()
                                 parent_tweet = r.data['id']
 
                             if r.errors:
@@ -277,7 +277,7 @@ class TwitterClient:
                             else:
                                 print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
                     else:
-                        if self.rate_limter.is_allowed():
+                        if self.rate_limiter.is_allowed():
                             # media images
                             if tweet['images']:
                                 # loop through images, upload them, get their media ids
@@ -302,7 +302,7 @@ class TwitterClient:
 
                             r = self.api_v2.create_tweet(
                                 text=tweet_text, in_reply_to_tweet_id=tweet_id, media_ids=media_ids)
-                            self.rate_limter.add_allowed_time()
+                            self.rate_limiter.add_allowed_time()
 
                             if r.errors:
                                 error_messages = [error['message'] for error in r.errors]

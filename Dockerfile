@@ -18,4 +18,4 @@ RUN pip install -e .
 # 打包 app 源码
 # COPY . /app
 RUN ls /app/secrets
-CMD [ "python", "-u", "src/notionToTwitter.py", "--project", '$PROJECT' ]
+CMD [ "python", "-u", "src/notion_to_social.py" ]

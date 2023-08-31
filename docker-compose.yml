@@ -1,12 +1,7 @@
 version: "3"
 services:
-  notion2social:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    image: notion2social_${PROJECT}:latest
-    environment:
-      - PROJECT=${PROJECT}
+  notion-to-social-promptgogo:
+    image: 177655761759.dkr.ecr.ap-southeast-2.amazonaws.com/notion-to-social:latest
     restart: always
     privileged: true
     volumes:
