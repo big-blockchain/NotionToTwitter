@@ -1,0 +1,13 @@
+version: "3"
+services:
+  notion2social:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: notion2social_${PROJECT}:latest
+    environment:
+      - PROJECT=${PROJECT}
+    restart: always
+    privileged: true
+    volumes:
+      - "./secrets:/secrets"

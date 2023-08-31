@@ -28,11 +28,10 @@ parser.add_argument('--sleep', default='14400', type=int,
 # main script
 if __name__ == "__main__":
     print('\n\n==========================================================')
-    start = arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')
-    print('Starting at ' + str(start) + '\n\n')
-
     # parse all arguments
     args = parser.parse_args()
+    start = arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')
+    print('Starting at ' + args.project + str(start) + '\n\n')
 
     # open secrets
     can_tweet = False
