@@ -40,7 +40,7 @@ if __name__ == "__main__":
     row_time = secrets.get('sleep').get('row')
 
     while True:
-        print('Start Action at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
+        print('Start All Actions at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
         # initialize notion client and determine notion DB
         notion = NotionClient(token=secrets.get('notion').get('notionToken'),
                               db_id=secrets.get('notion').get('databaseID'))
@@ -48,6 +48,8 @@ if __name__ == "__main__":
         # loop over row in filtered rows collection
         for row in notion.filtered_rows:
             row = NotionRow(row, notion)
+            print('Start ' + row.title + ' at ' + str(
+                arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
             if can_tweet and constants.SUPPORT_PLATFORM.get('twitter') in row.platform \
                     and constants.SUPPORT_PLATFORM.get('twitter') not in row.posted_platform:
                 twitter_client = TwitterClient(
@@ -94,8 +96,11 @@ if __name__ == "__main__":
                 print('All platform posted')
                 notion.update_notion_checked_posted(row)
 
-            # hold 60 seconds for every row sended
+            print('End ' + row.title + ' at ' + str(
+                arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
+
+            # hold 60 seconds for every row is sent
             time.sleep(row_time)
 
-        print('End Action at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
+        print('End All Actions at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
         time.sleep(cycle_time)
