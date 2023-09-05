@@ -3,42 +3,31 @@ Author: Damon Xiong
 End-to-end script for posting twitter threads from a Notion Database of your choice to your Scocial account
 """
 
-import sys
 import time
 import traceback
 import arrow
 import json
-import argparse
 
 import tweepy.errors
 
 from lib.notion_utils import NotionClient, NotionRow
-from lib.instagram_utils import post_row_to_instagram, InstagramClient
+from lib.instagram_utils import InstagramClient
 from globalStore import constants
 from lib.twitter_utils import TwitterClient
-
-# arguments
-PYTHON = sys.executable
-parser = argparse.ArgumentParser()
-parser.add_argument('--project', default='mountleap', type=str,
-                    help='Project name with secrets. Options are: promptgogo')
-parser.add_argument('--sleep', default='14400', type=int,
-                    help='Sleep time between posting default is 14400 seconds(4 hours)')
 
 # main script
 if __name__ == "__main__":
     print('\n\n==========================================================')
-    # parse all arguments
-    args = parser.parse_args()
-    start = arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')
-    print('Starting at ' + args.project + str(start) + '\n\n')
 
     # open secrets
     can_tweet = False
     can_instagram = False
 
-    with open("../secrets/secrets_{}.json".format(args.project), "r") as f:
+    with open("../secrets/secrets.json", "r") as f:
         secrets = json.load(f)
+
+    start = arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')
+    print(secrets.get('project') + ' starting at ' + str(start) + '\n\n')
 
     if 'twitter' in secrets:
         print('Twitter secrets found')
@@ -46,6 +35,9 @@ if __name__ == "__main__":
     if 'instagram' in secrets:
         print('Instagram secrets found')
         can_instagram = True
+
+    cycle_time = secrets.get('sleep').get('cycle')
+    row_time = secrets.get('sleep').get('row')
 
     while True:
         print('Start Action at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
@@ -70,7 +62,7 @@ if __name__ == "__main__":
                     twitter_client.post_row_to_twitter(row, notion)
                 except tweepy.errors.TooManyRequests:
                     print('Too many requests')
-                    twitter_client.rate_limter.limiter_now()
+                    twitter_client.rate_limiter.limiter_now()
                 except Exception as e:
                     print(str(e))
                     traceback.print_exc()
@@ -103,7 +95,7 @@ if __name__ == "__main__":
                 notion.update_notion_checked_posted(row)
 
             # hold 60 seconds for every row sended
-            time.sleep(60)
+            time.sleep(row_time)
 
         print('End Action at ' + str(arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')) + '\n\n')
-        time.sleep(int(args.sleep))
+        time.sleep(cycle_time)
