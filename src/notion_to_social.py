@@ -26,6 +26,11 @@ if __name__ == "__main__":
     with open("../secrets/secrets.json", "r") as f:
         secrets = json.load(f)
 
+    proxy = secrets.get('proxy')
+    if len(proxy) == 0:
+        proxy = None
+    print(f'get proxy:{proxy}')
+
     start = arrow.get(time.time()).to('utc').format('YYYY-MM-DD HH:mm:ss ZZ')
     print(secrets.get('project') + ' starting at ' + str(start) + '\n\n')
 
@@ -57,7 +62,8 @@ if __name__ == "__main__":
                     consumer_key=secrets.get('twitter').get('APIConsumerKey'),
                     consumer_secret=secrets.get('twitter').get('APIConsumerSecret'),
                     access_token=secrets.get('twitter').get('AccessToken'),
-                    access_token_secret=secrets.get('twitter').get('AccessTokenSecret')
+                    access_token_secret=secrets.get('twitter').get('AccessTokenSecret'),
+                    proxy=proxy
                 )
                 # start a twitter api session
                 try:
@@ -83,6 +89,7 @@ if __name__ == "__main__":
                         client_id=secrets.get('instagram').get('clientId'),
                         client_secret=secrets.get('instagram').get('clientSecret'),
                         user_id=secrets.get('instagram').get('userId'),
+                        proxy=proxy
                     )
                     instagram.post(row, notion)
                 except Exception as e:

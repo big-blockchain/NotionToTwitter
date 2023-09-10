@@ -7,17 +7,20 @@ from io import BytesIO
 import requests
 
 from PIL import Image
+from lib.proxy import disable_proxy, enable_proxy
 
 
 class LinkedinClient:
     api_version = 'v17.0'
 
-    def __init__(self, access_token, client_id, client_secret, user_id):
+    def __init__(self, access_token, client_id, client_secret, user_id, proxy):
         self.quota_usage = None
         self.access_token = access_token
         self.client_id = client_id
         self.client_secret = client_secret
         self.user_id = user_id
+        self.proxy = proxy
+
         self.content_publishing_limit()
 
     def exchange_token(self):
@@ -28,7 +31,11 @@ class LinkedinClient:
             'client_secret': self.client_secret,
             'fb_exchange_token': self.access_token
         }
+        if self.proxy is not None:
+            enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
         requests.get(f"https://graph.facebook.com/{self.api_version}/oauth/access_token", params=params)
+        if self.proxy is not None:
+            disable_proxy()
         pass
 
     def content_publishing_limit(self):
@@ -36,7 +43,11 @@ class LinkedinClient:
         headers = {
             "Authorization": f"Bearer {self.access_token}"
         }
+        if self.proxy is not None:
+            enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
         response = requests.get(f"https://graph.facebook.com/{self.user_id}/content_publishing_limit", headers=headers)
+        if self.proxy is not None:
+            disable_proxy()
         print(response.json())
         # 检查响应状态码
         if response.status_code == 200:
@@ -59,8 +70,12 @@ class LinkedinClient:
             'image_url': image_url[0]['external']['url'],
             'caption': caption,
         }
+        if self.proxy is not None:
+            enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
         response = requests.post(f"https://graph.facebook.com/{self.api_version}/{self.user_id}/media", headers=headers,
                                  params=params)
+        if self.proxy is not None:
+            disable_proxy()
         print(response.json())
         # 检查响应状态码
         if response.status_code == 200:
@@ -80,9 +95,14 @@ class LinkedinClient:
         params = {
             'creation_id': creation_id,
         }
+        if self.proxy is not None:
+            enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
         response = requests.post(f"https://graph.facebook.com/{self.api_version}/{self.user_id}/media_publish",
                                  headers=headers,
                                  params=params)
+        if self.proxy is not None:
+            disable_proxy()
+
         print(response.json())
         # 检查响应状态码
         if response.status_code == 200:

@@ -10,6 +10,7 @@ import tweepy
 from TwitterAPI import TwitterAPI
 
 from rateLimiter.rate_limiter import RateLimiter
+from lib.proxy import disable_proxy, enable_proxy
 
 
 def extract_twitter_info(retweet_url):
@@ -26,14 +27,22 @@ def extract_twitter_info(retweet_url):
 
 
 class TwitterClient:
-    def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token):
+    def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token, proxy):
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self.bearer_token = bearer_token
+        self.proxy = proxy
         self.rate_limiter = RateLimiter(max_requests=50, duration=24 * 60 * 60)
-
+        if self.proxy is not None:
+            print(f'get proxy:{self.proxy}')
+            http_proxy = self.proxy.get('http')
+            print(f'get proxy http:{http_proxy}')
+            https_proxy = self.proxy.get('https')
+            print(f'get proxy https:{https_proxy}')
+        if self.proxy is not None:
+            enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
         self.api_v1 = TwitterAPI(consumer_key=consumer_key,
                                  consumer_secret=consumer_secret,
                                  access_token_key=access_token,
@@ -47,6 +56,10 @@ class TwitterClient:
             access_token=access_token,
             access_token_secret=access_token_secret,
         )
+        if self.proxy is not None:
+            disable_proxy()
+        print(f'api_v1:{self.api_v1}')
+        print(f'api_v2:{self.api_v2}')
 
     def post_row_to_twitter(self, row, notion):
         """
@@ -130,7 +143,11 @@ class TwitterClient:
                                     # read data from URL
                                     response = requests.get(img)
                                     data = response.content
+                                if self.proxy is not None:
+                                    enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                                 w = self.api_v1.request('media/upload', None, {'media': data})
+                                if self.proxy is not None:
+                                    disable_proxy()
                                 print('UPLOAD MEDIA SUCCESS' if w.status_code == 200
                                       else 'UPLOAD MEDIA FAILURE: ' + w.text)
                                 if w.status_code == 200:
@@ -141,12 +158,20 @@ class TwitterClient:
                         for tweet_text in fragments:
                             if parent_tweet is None and len(media_ids) > 0:
                                 print(len(tweet_text))
+                                if self.proxy is not None:
+                                    enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                                 r = self.api_v2.create_tweet(text=tweet_text, media_ids=media_ids)
+                                if self.proxy is not None:
+                                    disable_proxy()
                                 self.rate_limiter.add_allowed_time()
                                 parent_tweet = r.data['id']
                             else:
                                 print(len(tweet_text))
+                                if self.proxy is not None:
+                                    enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                                 r = self.api_v2.create_tweet(text=tweet_text, in_reply_to_tweet_id=parent_tweet)
+                                if self.proxy is not None:
+                                    disable_proxy()
                                 self.rate_limiter.add_allowed_time()
                                 parent_tweet = r.data['id']
 
@@ -171,7 +196,11 @@ class TwitterClient:
                                         # read data from URL
                                         response = requests.get(img)
                                         data = response.content
+                                    if self.proxy is not None:
+                                        enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                                     w = self.api_v1.request('media/upload', None, {'media': data})
+                                    if self.proxy is not None:
+                                        disable_proxy()
                                     print('UPLOAD MEDIA SUCCESS' if w.status_code ==
                                                                     200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
                                     if w.status_code == 200:
@@ -179,8 +208,13 @@ class TwitterClient:
                             else:
                                 media_ids = None
 
+                            if self.proxy is not None:
+                                enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                             r = self.api_v2.create_tweet(
                                 text=tweet_text, in_reply_to_tweet_id=reply_to_id, media_ids=media_ids)
+                            if self.proxy is not None:
+                                disable_proxy()
+
                             self.rate_limiter.add_allowed_time()
 
                             if r.errors:
@@ -250,7 +284,11 @@ class TwitterClient:
                                     # read data from URL
                                     response = requests.get(img)
                                     data = response.content
+                                if self.proxy is not None:
+                                    enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                                 w = self.api_v1.request('media/upload', None, {'media': data})
+                                if self.proxy is not None:
+                                    disable_proxy()
                                 print('UPLOAD MEDIA SUCCESS' if w.status_code ==
                                                                 200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
                                 if w.status_code == 200:
@@ -258,6 +296,8 @@ class TwitterClient:
                         else:
                             media_ids = None
 
+                        if self.proxy is not None:
+                            enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                         for tweet_text in fragments:
                             if parent_tweet is None and len(media_ids) > 0:
                                 print(len(tweet_text))
@@ -275,6 +315,8 @@ class TwitterClient:
                                 print('UPDATE STATUS FAILURE: '.join(error_messages))
                             else:
                                 print('UPDATE TWITTER STATUS SUCCESS'.join(row.title))
+                        if self.proxy is not None:
+                            disable_proxy()
                     else:
                         if self.rate_limiter.is_allowed():
                             # media images
@@ -291,7 +333,11 @@ class TwitterClient:
                                         # read data from URL
                                         response = requests.get(img)
                                         data = response.content
+                                    if self.proxy is not None:
+                                        enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                                     w = self.api_v1.request('media/upload', None, {'media': data})
+                                    if self.proxy is not None:
+                                        disable_proxy()
                                     print('UPLOAD MEDIA SUCCESS' if w.status_code ==
                                                                     200 else 'UPLOAD MEDIA FAILURE: ' + w.text)
                                     if w.status_code == 200:
@@ -299,8 +345,12 @@ class TwitterClient:
                             else:
                                 media_ids = None
 
+                            if self.proxy is not None:
+                                enable_proxy(self.proxy.get('http'), self.proxy.get('https'))
                             r = self.api_v2.create_tweet(
                                 text=tweet_text, in_reply_to_tweet_id=tweet_id, media_ids=media_ids)
+                            if self.proxy is not None:
+                                disable_proxy()
                             self.rate_limiter.add_allowed_time()
 
                             if r.errors:
