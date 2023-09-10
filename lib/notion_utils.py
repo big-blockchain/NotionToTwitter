@@ -148,7 +148,6 @@ class NotionRow:
 
         self.tweeted = row['properties']['Posted?']['checkbox']
 
-        self.medias = row['properties']['Medias Link']['rich_text'][0]['text']['content']
         if len(row['properties']['Medias Link']['rich_text']) > 0:
             self.medias = [item for item in
                            row['properties']['Medias Link']['rich_text'][0]['text']['content'].split(";") if item != '']
